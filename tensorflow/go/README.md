@@ -8,9 +8,78 @@ Construct and execute TensorFlow graphs in Go.
 > without notice. The same goes for the awkward package path
 > (`github.com/tensorflow/tensorflow/tensorflow/go`).
 
-## Quickstart
+## Installing TensorFlow for Go
 
-Refer to [Installing TensorFlow for Go](https://www.tensorflow.org/install/install_go)
+### TensorFlow C library
+
+Install the TensorFlow C library which is required for the TensorFlow Go package.
+
+### Download
+
+Download and install the TensorFlow Go package and its dependencies:
+
+```
+go get github.com/tensorflow/tensorflow/tensorflow/go
+```
+
+And validate your installation:
+
+```
+go test github.com/tensorflow/tensorflow/tensorflow/go
+```
+
+## Build
+
+### Example program
+
+With the TensorFlow Go package installed, create an example program with the following source code (hello_tf.go):
+
+```
+package main
+
+import (
+    tf "github.com/tensorflow/tensorflow/tensorflow/go"
+    "github.com/tensorflow/tensorflow/tensorflow/go/op"
+    "fmt"
+)
+
+func main() {
+    // Construct a graph with an operation that produces a string constant.
+    s := op.NewScope()
+    c := op.Const(s, "Hello from TensorFlow version " + tf.Version())
+    graph, err := s.Finalize()
+    if err != nil {
+        panic(err)
+    }
+
+    // Execute the graph in a session.
+    sess, err := tf.NewSession(graph, nil)
+    if err != nil {
+        panic(err)
+    }
+    output, err := sess.Run(nil, []tf.Output{c}, nil)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println(output[0].Value())
+}
+```
+
+## Run
+
+Run the example program:
+
+```
+go run hello_tf.go
+```
+The command outputs: Hello from TensorFlow version number
+The program may generate the following warning messages, which you can ignore:
+
+```
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library
+wasn't compiled to use *Type* instructions, but these are available on your
+machine and could speed up CPU computations.
+```
 
 ## Building the TensorFlow C library from source
 
@@ -32,13 +101,8 @@ from source.
 
 ### Build
 
-1.  Download the source code
 
-    ```sh
-    go get -d github.com/tensorflow/tensorflow/tensorflow/go
-    ```
-
-2.  Build the TensorFlow C library:
+1.  Build the TensorFlow C library:
 
     ```sh
     cd ${GOPATH}/src/github.com/tensorflow/tensorflow
@@ -48,7 +112,7 @@ from source.
 
     This can take a while (tens of minutes, more if also building for GPU).
 
-3.  Make `libtensorflow.so` available to the linker. This can be done by either:
+2.  Make `libtensorflow.so` available to the linker. This can be done by either:
 
     a. Copying it to a system location, e.g.,
 
@@ -68,7 +132,7 @@ from source.
     export DYLD_LIBRARY_PATH=${GOPATH}/src/github.com/tensorflow/tensorflow/bazel-bin/tensorflow
     ```
 
-4.  Build and test:
+3.  Build and test:
 
     ```sh
     go test github.com/tensorflow/tensorflow/tensorflow/go
